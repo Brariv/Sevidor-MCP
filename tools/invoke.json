@@ -1,0 +1,88 @@
+{
+    "tools": [
+        {
+            "name": "get_faq_maxicrez",
+            "description": "Get FAQ for Maxicrez",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        }, 
+        {
+            "name": "get_faq_diabelife",
+            "description": "Get FAQ for Diabelife",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        },
+        {
+            "name": "get_faq_colonditox",
+            "description": "Get FAQ for Colonditox",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        },
+        {
+            "name": "get_faq_geriaking_vital",
+            "description": "Get FAQ for Geriaking Vital",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        },
+        {
+            "name": "get_faq_perenterol",
+            "description": "Get FAQ for Perenterol",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        },
+        {
+            "name": "get_faq_calmiderm",
+            "description": "Get FAQ for Calmiderm",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "pregunta_usuario": {
+                        "type": "string",
+                        "description": "The user's question to find the closest FAQ match and in base of that return the answer." 
+                    }
+                },
+                "required": ["pregunta_usuario"]
+            }
+        }
+    ]
+}
