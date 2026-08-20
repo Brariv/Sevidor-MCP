@@ -3,6 +3,8 @@ MARCAS = {
     "get_faq_diabelife": "diabelife",
     "get_faq_colonditox": "colonditox",
     "get_faq_geriaking_vital": "geriaking vital",
+    "get_faq_geriaking_vital": "geriaking",
+    "get_faq_geriaking_vital": "geriaking_vital",
     "get_faq_perenterol": "perenterol",
     "get_faq_calmiderm": "calmiderm",
 }
