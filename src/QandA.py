@@ -1,7 +1,8 @@
-from rapidfuzz import process as rf_process
+from rapidfuzz import process as rf_process, fuzz
 import sys
 import json
-from unicodedata import name
+import unicodedata
+import re
 import urllib.request
 import difflib
 import pandas as pd
@@ -35,6 +36,14 @@ if FAQ_PATH is None:
 
 faq_df = leer_faq_plano(FAQ_PATH)  # columnas: "pregunta", "respuesta"
 
+def normalizar(texto: str) -> str:
+    """Minúsculas, sin tildes, sin signos de puntuación, espacios colapsados."""
+    texto = texto.lower().strip()
+    texto = unicodedata.normalize("NFD", texto)
+    texto = "".join(c for c in texto if unicodedata.category(c) != "Mn")
+    texto = re.sub(r"[^\w\s]", " ", texto)
+    return re.sub(r"\s+", " ", texto).strip()
+
 def buscar_pregunta_exacta(pregunta_usuario: str, faq_df: pd.DataFrame) -> str:
     """Buscar la pregunta más cercana en la FAQ usando difflib."""
     preguntas = faq_df[COL_PREGUNTA].tolist()
@@ -43,10 +52,28 @@ def buscar_pregunta_exacta(pregunta_usuario: str, faq_df: pd.DataFrame) -> str:
         return resultados[0]
     return None
 
-def buscar_preguntas_cercanas(pregunta_usuario, df_marca, n=3):
+def buscar_preguntas_cercanas(pregunta_usuario, df_marca, n=5, umbral=45):
     preguntas = df_marca[COL_PREGUNTA].tolist()
-    resultados = rf_process.extract(pregunta_usuario, preguntas, limit=n)
-    return [(match, score) for match, score, _ in resultados if score > 30]  # umbral bajo
+
+    resultados = rf_process.extract(
+        pregunta_usuario,
+        preguntas,
+        scorer=fuzz.token_set_ratio,
+        processor=normalizar,      # se aplica a la query Y a las opciones
+        limit=n,
+    )
+
+    candidatos = []
+    for match, score, idx in resultados:
+        if score < umbral:
+            continue
+        fila = df_marca.iloc[idx]
+        candidatos.append({
+            "pregunta": fila[COL_PREGUNTA],
+            "respuesta": fila[COL_RESPUESTA],
+            "score": round(score),
+        })
+    return candidatos
 
 def listar_preguntas_producto(arguments: dict) -> str:
     marca = arguments.get("marca")
@@ -81,7 +108,9 @@ def call_tool(name: str, arguments: dict) -> str:
     if name.endswith("_exacta"):
         marca = MARCAS.get(name[:-7])  # quitar "_exacta"
         pregunta_usuario = (arguments.get("pregunta") or "")
-        if not marca or not pregunta_usuario:
+        if not marca:
+            raise ToolNotFound(f"Tool '{name}' not found.")
+        if not pregunta_usuario:
             raise ValueError("Los argumentos 'marca' y 'pregunta' son obligatorios.")
 
         df_marca = faq_df[faq_df["marca_norm"] == marca]
@@ -115,7 +144,7 @@ def call_tool(name: str, arguments: dict) -> str:
 
     if not marca:
         raise ToolNotFound(f"Tool '{name}' not found.")
-    if not marca or not pregunta_usuario:
+    if not pregunta_usuario:
         raise ValueError("Los argumentos 'marca' y 'pregunta' son obligatorios.")
     
 
@@ -130,17 +159,5 @@ def call_tool(name: str, arguments: dict) -> str:
             "Se recomienda consultar directamente con un farmacéutico."
         )
 
-    resultados = []
-    for pregunta, score in preguntas_cercanas:
-        coincidencias = df_marca.loc[
-            df_marca[COL_PREGUNTA] == pregunta, COL_RESPUESTA
-        ]
-        if not coincidencias.empty:
-            resultados.append({
-                "pregunta": pregunta,
-                "respuesta": coincidencias.iloc[0],
-                "score": score,
-            })
-
-    return json.dumps(resultados, ensure_ascii=False)
+    return json.dumps(preguntas_cercanas, ensure_ascii=False)
 
