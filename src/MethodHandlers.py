@@ -10,6 +10,10 @@ from Tools import TOOLS
 SERVER_INFO = {"name": "faq-mcp-manual", "version": "1.0.0"}
 PROTOCOL_VERSION = "2025-06-18"
 
+class ToolNotFound(Exception):
+    """Raised when a tool is not found."""
+    pass
+
 def handle_initialize(msg_id, params):
     send_result(
         msg_id,
@@ -30,15 +34,12 @@ def handle_tools_call(msg_id, params):
     arguments = params.get("arguments", {})
     try:
         text_result = call_tool(name, arguments)
-    except KeyError as e:
-        send_error(msg_id, INVALID_PARAMS, f"Missing argument: {e}")
-        return
+    except ToolNotFound as e:
+        send_error(msg_id, METHOD_NOT_FOUND, str(e))      # -32601
     except ValueError as e:
-        send_error(msg_id, METHOD_NOT_FOUND, str(e))
-        return
+        send_error(msg_id, INVALID_PARAMS, str(e))        # -32602
     except Exception as e:
-        send_error(msg_id, INTERNAL_ERROR, f"Tool execution failed: {e}")
-        return
+        send_error(msg_id, INTERNAL_ERROR, f"Tool execution failed: {e}")  # -32603
 
     send_result(
         msg_id,

@@ -16,6 +16,7 @@ from __future__ import annotations
 import sys
 import pandas as pd
 from Json_RPC_Plumbing import log
+from pathlib import Path
 
 COL_PREGUNTA = "Pregunta frecuente"
 COL_RESPUESTA = "Respuesta sugerida"
@@ -62,12 +63,12 @@ def leer_faq_plano(path: str) -> pd.DataFrame:
         ignore_index=True,
     )[["marca", COL_PREGUNTA, COL_RESPUESTA]]
 
-
-ruta = sys.argv[1] if len(sys.argv) > 1 else "data/FAQ_Redes_Sociales_Marcas.xlsx"
-for marca, df in leer_faq_por_marca(ruta).items():
-    log(f"{marca.title()}: {len(df)} preguntas")
-    for pregunta in df[COL_PREGUNTA].tolist()[:3]:
-        log(f"  - {pregunta}")
+# BASE_DIR = Path(__file__).resolve().parent
+# ruta = sys.argv[1] if len(sys.argv) > 1 else BASE_DIR / "data" / "FAQ_Redes_Sociales_Marcas.xlsx"
+# for marca, df in leer_faq_por_marca(ruta).items():
+#     log(f"{marca.title()}: {len(df)} preguntas")
+#     for pregunta in df[COL_PREGUNTA].tolist()[:3]:
+#         log(f"  - {pregunta}")
 
 # print(leer_faq_plano(ruta).head(3))
 # print(f"Total preguntas: {len(leer_faq_plano(ruta))}")
