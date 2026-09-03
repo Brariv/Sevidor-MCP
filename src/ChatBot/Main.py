@@ -10,7 +10,7 @@ Setup:
 import os
 import sys
 from pathlib import Path
-from config import STDIO_SERVERS, HTTP_SERVERS, MODEL, SYSTEM_PROMPT
+from Config import STDIO_SERVERS, HTTP_SERVERS, MODEL, SYSTEM_PROMPT
 
 import anthropic
 
@@ -77,7 +77,9 @@ def main() -> None:
     if not os.environ.get("ANTHROPIC_API_KEY"):
         sys.exit("Set ANTHROPIC_API_KEY (env var or .env file) before running.")
 
-    client_llm = anthropic.Anthropic()
+    workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+    default_headers = {"anthropic-workspace-id": workspace_id} if workspace_id else None
+    client_llm = anthropic.Anthropic(default_headers=default_headers)
     manager = MCPManager()
 
     print("Connecting to MCP servers...")
