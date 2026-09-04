@@ -34,7 +34,7 @@ venv/
 env/
 ENV/
 .env
-.env.*
+
 
 # Testing / coverage
 .tox/
