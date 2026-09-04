@@ -16,7 +16,7 @@ import subprocess
 import sys
 import urllib.request
 from datetime import datetime
-from Logger import log_mcp
+from .Logger import log_mcp
 
 
 

@@ -1,7 +1,7 @@
 import json
 import sys
 from datetime import datetime
-from Config import LOG_FILE
+from .Config import LOG_FILE
 
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
