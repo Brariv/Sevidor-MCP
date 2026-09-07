@@ -1,0 +1,11 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+UI/node_modules
+UI/dist
+src/logs
+src/demo
+.env
+.DS_Store
+captura

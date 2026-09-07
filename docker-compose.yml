@@ -1,0 +1,36 @@
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile.chatbot
+    container_name: farmacia-chatbot
+    env_file: .env            # ANTHROPIC_API_KEY, ANTHROPIC_WORKSPACE_ID
+    environment:
+      ALLOWED_ORIGINS: http://localhost:8080,http://localhost:5173,http://127.0.0.1:5173
+      # Llaves de sesión TLS para descifrar en Wireshark el tráfico hacia el MCP
+      # remoto (Cloud Run) y hacia api.anthropic.com.
+      # Para desactivarlo: pon una línea `SSLKEYLOGFILE=` (vacía) en el .env.
+      SSLKEYLOGFILE: ${SSLKEYLOGFILE-/app/captura/sslkeys.log}
+    ports:
+      - "8500:8500"
+    volumes:
+      - ./src/logs:/app/src/logs   # persiste mcp_interactions.log en el host
+      - ./captura:/app/captura     # sslkeys.log y los .pcap, visibles desde el host
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8500/tools', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./UI
+    container_name: farmacia-ui
+    ports:
+      - "8080:80"
+    depends_on:
+      chatbot:
+        condition: service_healthy
+    restart: unless-stopped

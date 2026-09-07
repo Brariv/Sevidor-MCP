@@ -44,7 +44,13 @@ client_llm = anthropic.Anthropic(
 manager = MCPManager()
 sesiones: dict[str, list] = {}   # session_id -> messages (session context)
 
-ALLOWED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get(
+        "ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(",")
+    if o.strip()
+]
 
 
 @asynccontextmanager
