@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  background: #ffffff;
+}
+
+a {
+  color: #2f6ea5;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #d10a0a;
+}
+
+* {
+  box-sizing: border-box;
+}
