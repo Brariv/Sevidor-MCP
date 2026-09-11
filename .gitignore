@@ -4,6 +4,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Data
+FAQ_Redes_Sociales_Marcas.xlsx
+FAQ_Redes_Sociales_Marcas_Test.xlsx
+
 # C extensions
 *.so
 

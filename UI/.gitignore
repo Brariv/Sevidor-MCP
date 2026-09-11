@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables locales de Vite (en Vercel se configuran en el proyecto)
+.env

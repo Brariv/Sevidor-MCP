@@ -9,8 +9,11 @@ services:
       ALLOWED_ORIGINS: http://localhost:8080,http://localhost:5173,http://127.0.0.1:5173
       # Llaves de sesión TLS para descifrar en Wireshark el tráfico hacia el MCP
       # remoto (Cloud Run) y hacia api.anthropic.com.
-      # Para desactivarlo: pon una línea `SSLKEYLOGFILE=` (vacía) en el .env.
-      SSLKEYLOGFILE: ${SSLKEYLOGFILE-/app/captura/sslkeys.log}
+      # Ruta FIJA del contenedor: no interpolar ${SSLKEYLOGFILE} del host, porque si
+      # esa variable está exportada en tu shell (p. ej. /Users/tu-usuario/sslkeys.log)
+      # se le pasa una ruta que adentro no existe y el chatbot no arranca.
+      # Para desactivarlo: comenta la línea de abajo.
+      SSLKEYLOGFILE: /app/captura/sslkeys.log
     ports:
       - "8500:8500"
     volumes:

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://farmacia-chatbot-d2ehydblca-uc.a.run.app/:path*"
+    }
+  ]
+}

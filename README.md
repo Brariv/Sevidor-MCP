@@ -65,6 +65,8 @@ src/
 UI/                       Tienda + widget de chat (React 19 + Vite)
 docs/arquitectura.drawio  Diagrama de arquitectura y tabla de componentes (draw.io)
 captura/                  sslkeys.log y .pcap para Wireshark (no se versiona)
+deploy-chatbot.sh         Build + push + deploy del chatbot en Cloud Run
+UI/vercel.json            Rewrite /api -> Cloud Run para el deploy en Vercel
 test/TestClient.py        Cliente MCP mínimo para probar el servidor local
 Examples/                 Servidor de clima de referencia (ejemplo del curso)
 ```
@@ -172,7 +174,12 @@ Notas:
 - El tráfico UI ↔ chatbot (puertos 8080 y 8500) es HTTP plano, se ve sin necesidad de llaves.
 - `captura/` está en `.gitignore`. Borra `sslkeys.log` al terminar: con ese archivo
   cualquiera puede descifrar esas sesiones.
-- Para desactivarlo, agrega una línea vacía `SSLKEYLOGFILE=` en tu `.env`.
+- Para desactivarlo, comenta la línea `SSLKEYLOGFILE:` en `docker-compose.yml`.
+- No definas `SSLKEYLOGFILE` en el `.env` ni lo dejes exportado esperando que el
+  contenedor lo herede: la ruta del contenedor y la de tu Mac son distintas, y una
+  ruta del host hace que el chatbot truene al arrancar
+  (`FileNotFoundError` al crear el contexto TLS). Si ya lo tienes exportado en tu
+  shell para capturar tráfico del host, no hay problema: el compose usa su ruta fija.
 
 ---
 
@@ -274,7 +281,61 @@ Dos reglas que importan en la implementación:
 
 ---
 
-## Despliegue en Cloud Run
+## Despliegue: UI en Vercel + chatbot en Cloud Run
+
+Vercel no corre `docker compose`: sirve sitios estáticos y funciones, y (desde hace poco)
+un `Dockerfile.vercel` como función que **escala a cero**. Eso no le queda al chatbot,
+porque las sesiones viven en memoria y el log en archivo: al apagarse la instancia se
+pierden los dos. Así que la UI va a Vercel y el chatbot a Cloud Run, junto al servidor MCP.
+
+### 1. Chatbot en Cloud Run
+
+```bash
+./deploy-chatbot.sh
+```
+
+El script construye `Dockerfile.chatbot` con `--platform linux/amd64` (obligatorio desde
+una Mac con chip Apple: Cloud Run no corre imágenes arm64), la sube a Artifact Registry,
+despliega el servicio y al final imprime la URL. Las llaves salen de tu `.env`.
+
+Detalle: el `CMD` usa `${PORT:-8500}`, así que respeta el puerto que inyecta Cloud Run
+y en local sigue siendo 8500.
+
+Comprueba que quedó bien:
+
+```bash
+curl https://<tu-chatbot>.run.app/tools
+```
+
+### 2. UI en Vercel
+
+1. Pon la URL del paso anterior en `UI/vercel.json`, en el `destination` del rewrite.
+   Con eso el navegador llama a `/api/chat` en el mismo origen y Vercel lo reenvía a
+   Cloud Run — igual que hace nginx en Docker, y sin problemas de CORS.
+2. Crea el proyecto en Vercel con **Root Directory = `UI`** (Vercel detecta Vite solo).
+3. Variable de entorno del proyecto: `VITE_CHAT_API_URL=/api/chat`.
+4. Deploy.
+
+Con el CLI:
+
+```bash
+cd UI
+vercel --prod
+```
+
+### Notas
+
+- Si prefieres llamar directo a Cloud Run en vez de usar el rewrite, pon la URL completa
+  en `VITE_CHAT_API_URL` y agrega el dominio de Vercel a `ALLOWED_ORIGINS` del servicio.
+  El rewrite evita tener que ir actualizando CORS cada vez que cambia la URL de preview.
+- `SSLKEYLOGFILE` es solo para la práctica local. No lo pongas en Cloud Run.
+- Las sesiones siguen en memoria: si Cloud Run levanta una segunda instancia o recicla la
+  actual, esa conversación empieza de cero. Para el proyecto está bien; si necesitaras que
+  aguante, habría que sacar `sesiones` a Redis o mandar el historial desde el cliente.
+
+---
+
+## Despliegue del servidor MCP en Cloud Run
 
 `src/Dockerfile` empaqueta el servidor MCP remoto (lee el puerto de `$PORT`):
 
